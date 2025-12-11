@@ -1,0 +1,168 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Search Books (API)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="container mt-5">
+
+    <h2 class="mb-4 text-center">📚 Search Books (Google Books API)</h2>
+
+    <!-- Search Filters -->
+    <div class="input-group mb-4 shadow-sm">
+
+        <input type="text" id="searchInput" class="form-control"
+               placeholder="Search by Title, Author, ISBN, Publisher...">
+
+        <button class="btn btn-success" id="searchBtn">Search</button>
+    </div>
+
+    <!-- Results Container -->
+    <div id="resultsContainer" class="row gy-4"></div>
+
+</div>
+
+
+<!-- Book Modal -->
+<div class="modal fade" id="bookModal" tabindex="-1" aria-labelledby="bookModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form id="bookForm" method="POST" action="{% url 'add_book' %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="bookModalLabel">Add / Edit Book</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="id_isbn" class="form-label">ISBN</label>
+            <input type="text" name="isbn" id="id_isbn" class="form-control">
+          </div>
+          <div class="mb-3">
+            <label for="id_title" class="form-label">Title</label>
+            <input type="text" name="title" id="id_title" class="form-control">
+          </div>
+          <div class="mb-3">
+            <label for="id_author" class="form-label">Author</label>
+            <input type="text" name="author" id="id_author" class="form-control">
+          </div>
+          <div class="mb-3">
+            <label for="id_description" class="form-label">Description</label>
+            <textarea name="description" id="id_description" class="form-control" rows="3"></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="id_published_year" class="form-label">Published Year</label>
+            <input type="number" name="published_year" id="id_published_year" class="form-control">
+          </div>
+          <div class="mb-3">
+            <label for="id_pages" class="form-label">Pages</label>
+            <input type="number" name="pages" id="id_pages" class="form-control">
+          </div>
+          <div class="mb-3">
+            <label for="id_genre" class="form-label">Genre</label>
+            <input type="text" name="genre" id="id_genre" class="form-control">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Save Book</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+
+<script>
+    $("#searchBtn").click(function () {
+        let type = $("#searchType").val();
+        let query = $("#searchInput").val().trim();
+
+        if (!query) {
+            alert("Please enter a search value.");
+            return;
+        }
+
+        let finalQuery = type ? `${type}:${query}` : query;
+
+        $("#resultsContainer").html(`<p class='text-center'>Searching...</p>`);
+
+        $.get(`/search_books_api/?query=${encodeURIComponent(finalQuery)}`, function (data) {
+
+            if (!data.items) {
+                $("#resultsContainer").html(`<p class='text-center text-danger'>No results found.</p>`);
+                return;
+            }
+
+            let html = "";
+
+            data.items.forEach(book => {
+                let info = book.volumeInfo;
+
+                html += `
+                        <div class="col-md-4">
+                          <div class="card shadow-sm h-100">
+                            <img src="${info.imageLinks?.thumbnail || '/static/no_cover.png'}"
+                                 class="card-img-top" style="height:250px; object-fit:cover;">
+                            <div class="card-body">
+                              <h5 class="card-title">${info.title || 'No Title'}</h5>
+                              <p class="text-muted mb-1"><strong>Author:</strong> ${(info.authors || []).join(', ') || 'Unknown'}</p>
+                              <p class="mb-1"><strong>Published:</strong> ${info.publishedDate || 'N/A'}</p>
+                              <p class="mb-3" style="height: 60px; overflow:hidden;">
+                                ${info.description || 'No Description'}
+                              </p>
+                              <button class="btn btn-primary btn-sm addToLibraryBtn"
+                                data-isbn="${info.industryIdentifiers?.[0]?.identifier || ''}"
+                                data-title="${info.title || ''}"
+                                data-author="${(info.authors || []).join(', ')}"
+                                data-description="${info.description || ''}"
+                                data-published_year="${info.publishedDate?.substring(0,4) || ''}"
+                                data-pages="${info.pageCount || ''}"
+                                data-genre="${(info.categories || []).join(', ')}">
+                                ➕ Add to Library
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                    `;
+            });
+
+            $("#resultsContainer").html(html);
+        });
+    });
+</script>
+
+<script>
+    $(document).on("click", ".addToLibraryBtn", function () {
+        $("#id_isbn").val($(this).data("isbn"));
+        $("#id_title").val($(this).data("title"));
+        $("#id_author").val($(this).data("author"));
+        $("#id_description").val($(this).data("description"));
+        $("#id_published_year").val($(this).data("published_year"));
+        $("#id_pages").val($(this).data("pages"));
+        $("#id_genre").val($(this).data("genre"));
+
+        $("#bookForm").attr("action", "{% url 'add_book' %}");
+        $("#bookModalLabel").text("Add Book From Google");
+
+        const modalObj = new bootstrap.Modal(document.getElementById("bookModal"));
+        modalObj.show();
+    });
+</script>
+
+
+</body>
+</html>

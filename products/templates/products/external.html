@@ -1,0 +1,22 @@
+{% extends 'products/base.html' %}
+
+{% block content %}
+<h1>External Products Dashboard</h1>
+<ul id="external-list"></ul>
+
+<script>
+async function fetchExternal() {
+    const res = await fetch('/api/external-products/');
+    const data = await res.json();
+    const ul = document.getElementById('external-list');
+    ul.innerHTML = '';
+    data.forEach(p => {
+        const li = document.createElement('li');
+        li.textContent = `${p.title} — $${p.price}`;
+        ul.appendChild(li);
+    });
+}
+
+fetchExternal();
+</script>
+{% endblock %}

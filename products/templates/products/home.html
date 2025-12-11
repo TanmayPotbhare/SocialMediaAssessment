@@ -1,0 +1,43 @@
+{% extends 'products/base.html' %}
+
+{% block content %}
+<div class="hero">
+    <h1>📚 Welcome to My Library App</h1>
+    <p>Manage your book collection, explore external books, and visualize your library data in one place.</p>
+    <a href="/dashboard/" class="btn btn-light btn-lg btn-hero">Go to Dashboard</a>
+    <a href="/librarian_page/" class="btn btn-light btn-lg btn-hero">Librarian Functions</a>
+    <a href="/search-api/" class="btn btn-light btn-lg btn-hero">🔍 Search Books using Google Books API</a>
+</div>
+
+<div class="features text-center">
+    <h3>Features of this Demo App</h3>
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-4 mb-3">
+            <div class="feature-item p-4 shadow-sm rounded">
+                ✔ Add, edit, and delete books
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="feature-item p-4 shadow-sm rounded">
+                ✔ Visual reports of your library
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="feature-item p-4 shadow-sm rounded">
+                ✔ Search books via Open Library API and directly add with one click
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="feature-item p-4 shadow-sm rounded">
+                ✔ Modern responsive UI
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="feature-item p-4 shadow-sm rounded">
+                ✔ Easy navigation and clean layout
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

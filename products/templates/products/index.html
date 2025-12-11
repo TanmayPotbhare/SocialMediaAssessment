@@ -1,0 +1,81 @@
+{% extends 'products/base.html' %}
+
+{% block content %}
+<h1>Products Dashboard</h1>
+
+<h2>Add Product</h2>
+<input type="text" id="name" placeholder="Name" />
+<input type="number" step="0.01" id="price" placeholder="Price" />
+<input type="text" id="description" placeholder="Description" />
+<button onclick="addProduct()">Add Product</button>
+
+<h2>Products List</h2>
+<ul id="product-list"></ul>
+
+<h2>Products Report</h2>
+<canvas id="reportChart" width="400" height="200"></canvas>
+
+<script>
+async function fetchProducts() {
+    const res = await fetch('/api/products/');
+    const data = await res.json();
+    const ul = document.getElementById('product-list');
+    ul.innerHTML = '';
+    data.forEach(p => {
+        const li = document.createElement('li');
+        li.textContent = `${p.name} — $${p.price}`;
+        const delBtn = document.createElement('button');
+        delBtn.textContent = 'Delete';
+        delBtn.onclick = () => deleteProduct(p.id);
+        li.appendChild(delBtn);
+        ul.appendChild(li);
+    });
+}
+
+async function addProduct() {
+    const name = document.getElementById('name').value;
+    const price = parseFloat(document.getElementById('price').value);
+    const description = document.getElementById('description').value;
+
+    await fetch('/api/products/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, price, description })
+    });
+
+    document.getElementById('name').value = '';
+    document.getElementById('price').value = '';
+    document.getElementById('description').value = '';
+    fetchProducts();
+    fetchReport();
+}
+
+async function deleteProduct(id) {
+    await fetch(`/api/products/${id}/`, { method: 'DELETE' });
+    fetchProducts();
+    fetchReport();
+}
+
+async function fetchReport() {
+    const res = await fetch('/api/products-report/');
+    const report = await res.json();
+    const ctx = document.getElementById('reportChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: report.category_count.map(c => c.description),
+            datasets: [{
+                label: 'Number of Products',
+                data: report.category_count.map(c => c.count),
+                backgroundColor: 'rgba(75, 192, 192, 0.6)'
+            }]
+        },
+        options: {}
+    });
+}
+
+// Initial load
+fetchProducts();
+fetchReport();
+</script>
+{% endblock %}
