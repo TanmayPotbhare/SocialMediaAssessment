@@ -93,7 +93,6 @@ DATABASES = {
     'default': {
         'ENGINE': os.getenv('ENGINE'),
         'HOST': os.getenv('HOST'),
-        'PORT': os.getenv('PORT'),
         'NAME': os.getenv('NAME'),
         'USER': os.getenv('USER'),
         'PASSWORD': os.getenv('PASSWORD'),
